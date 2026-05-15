@@ -921,9 +921,14 @@ def render_recommend_card(strat_name: str, color: str, css_class: str,
 # ---------------------------------------------------------------------------
 def main():
     st.set_page_config(
-        page_title="升学规划助手",
+        page_title="中考志愿填报推荐 | Esther 制作",
         page_icon="🎓",
         layout="wide",
+        menu_items={
+            "About": "中考第二批次志愿填报推荐工具 v2 · "
+                     "基于排名 + 志愿优先规则的概率模型 · "
+                     "制作 by Esther",
+        },
     )
     st.markdown(CUSTOM_CSS, unsafe_allow_html=True)
 
@@ -936,8 +941,8 @@ def main():
     # =================================================================
     st.title("🎓 中考升学规划助手")
     st.markdown(
-        '<p style="font-size:18px;color:#6B7280;margin-top:-12px;">'
-        "科学填报，稳中有进 · 基于排名 + 名额博弈的概率推荐"
+        '<p style="font-size:18px;color:#047857;margin-top:-12px;">'
+        "🌿 科学填报，稳中有进 · 基于排名 + 名额博弈的概率推荐 · 适用广州中考第二批次"
         "</p>",
         unsafe_allow_html=True,
     )
@@ -1418,23 +1423,81 @@ def main():
                 p_any_mc = 1.0 - mc_result["未录取"]
 
                 st.success(f"✅ 方案：{c1_label} → {c2_label} → {c3_label}")
+
+                # ===== vs 最优方案对照 =====
+                # 在已生成的 strategies_df 里找综合录取率最高的方案
+                best_overall = strategies_df.sort_values(
+                    "综合录取率", ascending=False
+                ).iloc[0].to_dict()
+                best_p_any = float(best_overall["综合录取率"])
+                gap = p_any_mc - best_p_any
+                # 计算用户方案在 120 种里的排名
+                strategies_df_sorted = strategies_df.sort_values(
+                    "综合录取率", ascending=False
+                ).reset_index(drop=True)
+                user_rank_in_120 = None
+                for i, row in strategies_df_sorted.iterrows():
+                    if abs(row["综合录取率"] - p_any_mc) < 0.005:
+                        user_rank_in_120 = i + 1
+                        break
+                if user_rank_in_120 is None:
+                    # 找最接近的
+                    diffs = (strategies_df_sorted["综合录取率"] - p_any_mc).abs()
+                    user_rank_in_120 = int(diffs.idxmin()) + 1
+
                 m1, m2, m3 = st.columns(3)
-                m1.metric("✅ 综合录取率", f"{p_any_mc*100:.1f}%")
+                m1.metric(
+                    "✅ 你的综合录取率", f"{p_any_mc*100:.1f}%",
+                    delta=f"{gap*100:+.1f}pp vs 最优",
+                    delta_color="normal" if gap >= -0.05 else "inverse",
+                )
                 m2.metric("🎯 第一志愿命中", f"{mc_result[idx_1]*100:.1f}%")
                 m3.metric("❌ 滑档风险", f"{mc_result['未录取']*100:.1f}%")
+
+                # 排名 + 最优方案推荐
+                if user_rank_in_120 <= 5:
+                    st.success(
+                        f"🌟 **太棒了！** 你的方案在 120 种可能组合中**排第 {user_rank_in_120} 名**，"
+                        f"已经接近最优。"
+                    )
+                elif user_rank_in_120 <= 30:
+                    st.info(
+                        f"👍 你的方案在 120 种组合中**排第 {user_rank_in_120} 名**（前 25%）。"
+                        f"\n\n💡 模型最优方案是：**{best_overall['1志']} → {best_overall['2志']} → "
+                        f"{best_overall['3志']}**（综合 {best_p_any*100:.1f}%）"
+                    )
+                else:
+                    st.warning(
+                        f"⚠️ 你的方案在 120 种组合中**排第 {user_rank_in_120} 名**，还有提升空间。"
+                        f"\n\n💡 **强烈推荐**改填：**{best_overall['1志']} → {best_overall['2志']} → "
+                        f"{best_overall['3志']}**\n\n"
+                        f"录取率从 **{p_any_mc*100:.1f}% → {best_p_any*100:.1f}%**（提升 {(best_p_any-p_any_mc)*100:.1f}pp）"
+                    )
 
                 st.plotly_chart(
                     chart_outcome_pie(mc_result, schools_df),
                     use_container_width=True,
                 )
 
-    # 底部小字
+    # ============================================================
+    # 底部署名 + 模型说明
+    # ============================================================
     st.markdown("---")
-    st.caption(
-        "📌 模型说明：基于「志愿优先」规则建模 · "
-        "考虑前 15 名同学的自招分流 · "
-        "10 万次模拟保证结果稳定 · "
-        "推荐方案不构成最终建议，请结合实际情况判断。"
+    st.markdown(
+        """
+<div style="text-align: center; padding: 16px 0; color: #4B5563; font-size: 13px;">
+  📌 <b>模型说明</b>：基于广州中考<b>第二批次「志愿优先」</b>规则建模 ·
+  考虑前几名同学<b>自招分流</b> ·
+  <b>10 万次蒙特卡洛</b>保证结果稳定<br>
+  <br>
+  ⚠️ 本工具结果<b>仅供参考</b>，不构成最终填报建议。请结合孩子真实意愿、
+  家庭情况与<b>班主任专业建议</b>综合判断。<br>
+  <br>
+  💚 制作 by Esther · 数据来源：广州市招考办 2026 年公开数据 ·
+  <a href="https://github.com/estherhoho/school-selection-advisor" target="_blank" style="color:#10B981;">GitHub</a>
+</div>
+""",
+        unsafe_allow_html=True,
     )
 
 
