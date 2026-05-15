@@ -927,20 +927,21 @@ CUSTOM_CSS = """
   }
   .welcome-box * { color: #1F2937 !important; }
 
-  /* 让 Run 按钮更显眼 */
+  /* 让 Run 按钮更显眼（深绿渐变，跟主题搭） */
   div.stButton > button[kind="primary"] {
-    background: linear-gradient(135deg, #2563EB 0%, #7C3AED 100%);
-    color: white;
-    border: none;
-    padding: 14px 28px;
-    font-size: 17px;
-    font-weight: 600;
-    border-radius: 10px;
-    box-shadow: 0 4px 14px rgba(37,99,235,0.35);
+    background: linear-gradient(135deg, #047857 0%, #065F46 100%) !important;
+    color: white !important;
+    border: none !important;
+    padding: 14px 28px !important;
+    font-size: 17px !important;
+    font-weight: 600 !important;
+    border-radius: 10px !important;
+    box-shadow: 0 4px 14px rgba(4,120,87,0.35) !important;
   }
   div.stButton > button[kind="primary"]:hover {
-    background: linear-gradient(135deg, #1D4ED8 0%, #6D28D9 100%);
+    background: linear-gradient(135deg, #065F46 0%, #064E3B 100%) !important;
     transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(4,120,87,0.45) !important;
   }
 
   /* 紧凑 expander */
@@ -996,28 +997,66 @@ def main():
     init_session_defaults(middle_school_options[0])
 
     # =================================================================
-    # 🎯 HERO — 标题 + 价值主张
+    # HERO — 简洁深绿渐变，去 AI 装饰
     # =================================================================
-    st.title("🎓 中考升学规划助手")
     st.markdown(
-        '<p style="font-size:18px;color:#047857;margin-top:-12px;margin-bottom:8px;">'
-        "🌿 30 秒填表 · 1 分钟出 3 套科学填报方案 · 看准录取概率不滑档"
-        "</p>",
+        """
+<div style="background: linear-gradient(135deg, #065F46 0%, #047857 50%, #10B981 100%);
+            border-radius: 20px; padding: 40px 36px; margin: 8px 0 24px 0;
+            box-shadow: 0 8px 32px rgba(4,120,87,0.25);
+            position: relative; overflow: hidden;">
+  <div style="font-size: 13px; color: rgba(255,255,255,0.85); font-weight: 500;
+              letter-spacing: 3px; margin-bottom: 14px;">
+    广州中考 · 第二批次志愿规划
+  </div>
+  <h1 style="color: white !important; font-size: 44px !important; font-weight: 800 !important;
+             margin: 0 0 18px 0 !important; line-height: 1.15 !important;
+             letter-spacing: -1px;">
+    中考升学规划助手
+  </h1>
+  <div style="font-size: 18px; color: rgba(255,255,255,0.95); font-weight: 500;
+              line-height: 1.6; max-width: 760px;">
+    30 秒填表，1 分钟出 3 套科学填报方案。<br>
+    <b style="font-weight:700;">看准录取概率，不滑档。</b>
+  </div>
+  <div style="display: flex; gap: 32px; margin-top: 24px; flex-wrap: wrap;
+              padding-top: 18px; border-top: 1px solid rgba(255,255,255,0.2);">
+    <div style="color: rgba(255,255,255,0.9); font-size: 14px;">
+      <span style="font-size:17px;font-weight:700;">10 万次</span>
+      <span style="color:rgba(255,255,255,0.7);"> 蒙特卡洛模拟</span>
+    </div>
+    <div style="color: rgba(255,255,255,0.9); font-size: 14px;">
+      <span style="font-size:17px;font-weight:700;">官方</span>
+      <span style="color:rgba(255,255,255,0.7);"> 公开数据</span>
+    </div>
+    <div style="color: rgba(255,255,255,0.9); font-size: 14px;">
+      <span style="font-size:17px;font-weight:700;">不存</span>
+      <span style="color:rgba(255,255,255,0.7);"> 隐私信息</span>
+    </div>
+  </div>
+</div>
+""",
         unsafe_allow_html=True,
     )
 
     # =================================================================
-    # 永久 intro：冲/稳/保 三档说明（始终可见）
+    # 永久 intro：冲/稳/保 三档说明（去 AI 装饰，用大数字标号）
     # =================================================================
     intro_c1, intro_c2, intro_c3 = st.columns(3)
     with intro_c1:
         st.markdown(
             """
-<div style="background:linear-gradient(135deg,#FEF2F2 0%,#FEE2E2 100%);
-            border-radius:12px;padding:16px;border-left:4px solid #EF4444;">
-  <div style="font-size:18px;font-weight:700;color:#991B1B;">🔥 冲 — 敢拼一把</div>
-  <div style="font-size:14px;color:#7F1D1D;margin-top:4px;">
-    第一志愿填顶尖学校，万一中了就赚到。
+<div style="background:linear-gradient(135deg,#FEE2E2 0%,#FECACA 100%);
+            border-radius:16px; padding:24px 20px; border:1px solid #EF4444;
+            box-shadow:0 4px 14px rgba(239,68,68,0.12);
+            min-height: 170px; position:relative;">
+  <div style="position:absolute;top:14px;right:18px;font-size:42px;font-weight:900;
+              color:rgba(239,68,68,0.25);line-height:1;">01</div>
+  <div style="font-size:32px; font-weight:900; color:#991B1B; line-height:1;">冲</div>
+  <div style="font-size:13px; font-weight:700; color:#B91C1C;
+              letter-spacing:3px; margin:6px 0 12px 0;">敢拼一把</div>
+  <div style="font-size:14px; color:#7F1D1D; line-height:1.6;">
+    第一志愿填<b>顶尖学校</b>，<br>万一中了就赚到。
   </div>
 </div>
 """, unsafe_allow_html=True,
@@ -1025,11 +1064,17 @@ def main():
     with intro_c2:
         st.markdown(
             """
-<div style="background:linear-gradient(135deg,#FFFBEB 0%,#FEF3C7 100%);
-            border-radius:12px;padding:16px;border-left:4px solid #F59E0B;">
-  <div style="font-size:18px;font-weight:700;color:#92400E;">✅ 稳 — 踏实选择</div>
-  <div style="font-size:14px;color:#78350F;margin-top:4px;">
-    第一志愿填中等把握的学校，进可攻退可守。
+<div style="background:linear-gradient(135deg,#FEF3C7 0%,#FDE68A 100%);
+            border-radius:16px; padding:24px 20px; border:1px solid #F59E0B;
+            box-shadow:0 4px 14px rgba(245,158,11,0.15);
+            min-height: 170px; position:relative;">
+  <div style="position:absolute;top:14px;right:18px;font-size:42px;font-weight:900;
+              color:rgba(245,158,11,0.3);line-height:1;">02</div>
+  <div style="font-size:32px; font-weight:900; color:#78350F; line-height:1;">稳</div>
+  <div style="font-size:13px; font-weight:700; color:#92400E;
+              letter-spacing:3px; margin:6px 0 12px 0;">踏实选择</div>
+  <div style="font-size:14px; color:#78350F; line-height:1.6;">
+    第一志愿填<b>中等把握</b>，<br>进可攻退可守。
   </div>
 </div>
 """, unsafe_allow_html=True,
@@ -1037,33 +1082,39 @@ def main():
     with intro_c3:
         st.markdown(
             """
-<div style="background:linear-gradient(135deg,#F0FDF4 0%,#DCFCE7 100%);
-            border-radius:12px;padding:16px;border-left:4px solid #10B981;">
-  <div style="font-size:18px;font-weight:700;color:#065F46;">🛡️ 保 — 安全上岸</div>
-  <div style="font-size:14px;color:#064E3B;margin-top:4px;">
-    第一志愿填一定能上的学校，确保不滑档。
+<div style="background:linear-gradient(135deg,#DCFCE7 0%,#BBF7D0 100%);
+            border-radius:16px; padding:24px 20px; border:1px solid #10B981;
+            box-shadow:0 4px 14px rgba(16,185,129,0.15);
+            min-height: 170px; position:relative;">
+  <div style="position:absolute;top:14px;right:18px;font-size:42px;font-weight:900;
+              color:rgba(16,185,129,0.3);line-height:1;">03</div>
+  <div style="font-size:32px; font-weight:900; color:#064E3B; line-height:1;">保</div>
+  <div style="font-size:13px; font-weight:700; color:#065F46;
+              letter-spacing:3px; margin:6px 0 12px 0;">安全上岸</div>
+  <div style="font-size:14px; color:#064E3B; line-height:1.6;">
+    第一志愿填<b>一定能上</b>，<br>确保不滑档。
   </div>
 </div>
 """, unsafe_allow_html=True,
         )
 
     # =================================================================
-    # 📝 表单（主区域，移动端友好）
+    # 表单（主区域，移动端友好）
     # =================================================================
     st.markdown("##")
-    st.markdown("### 📝 填写孩子信息")
-    st.caption("`*` 为必填项 · 数据**仅本人查看**，不会公开")
+    st.markdown("### 填写孩子信息")
+    st.caption("`*` 为必填项 · 数据仅本人查看，不会公开")
 
     # 第一排：初中 + 集团排名
     form_c1, form_c2 = st.columns(2)
     with form_c1:
-        st.markdown("**🏫 孩子的初中 \\***")
+        st.markdown("**孩子的初中 \\***")
         st.selectbox(
             "初中", middle_school_options, key="middle_school",
             label_visibility="collapsed",
         )
     with form_c2:
-        st.markdown("**📊 集团排名 \\***")
+        st.markdown("**集团排名 \\***")
         st.selectbox(
             "排名",
             options=list(range(1, 51)),
@@ -1074,10 +1125,10 @@ def main():
             label_visibility="collapsed",
         )
 
-    # 第二排：波动 + 姓名（可选）
+    # 第二排：波动 + 姓名
     form_c3, form_c4 = st.columns(2)
     with form_c3:
-        st.markdown("**📈 排名波动 \\* （±N 名）**")
+        st.markdown("**排名波动 \\* （±N 名）**")
         st.select_slider(
             "波动",
             options=[0, 1, 2, 3, 4, 5, 7, 10, 15],
@@ -1087,7 +1138,7 @@ def main():
             label_visibility="collapsed",
         )
     with form_c4:
-        st.markdown("**🧒 孩子姓名 \\***")
+        st.markdown("**孩子姓名 \\***")
         st.text_input(
             "姓名", key="student_name",
             placeholder="",
@@ -1096,7 +1147,7 @@ def main():
         )
 
     # 一模成绩（可选，全宽）
-    st.markdown("**📋 一模成绩 *(可选，满分 810)*** ")
+    st.markdown("**一模成绩 *(可选，满分 810)*** ")
     st.number_input(
         "一模",
         min_value=0.0, max_value=810.0, step=1.0,
@@ -1107,20 +1158,20 @@ def main():
     )
 
     # 偏好（折叠，默认隐藏）
-    with st.expander("⚖️ 您最看重学校的什么？（可选，默认即可）", expanded=False):
+    with st.expander("您最看重学校的什么？（可选，默认即可）", expanded=False):
         st.caption("默认 50/25/25 适合大多数家长，想偏向某个维度再调。")
         pref_c1, pref_c2, pref_c3 = st.columns(3)
         with pref_c1:
             w_rep = st.slider(
-                "🏆 学校档次", 0.0, 1.0, step=0.05, key="w_rep",
+                "学校档次", 0.0, 1.0, step=0.05, key="w_rep",
             )
         with pref_c2:
             w_trans = st.slider(
-                "🚌 上学距离", 0.0, 1.0, step=0.05, key="w_trans",
+                "上学距离", 0.0, 1.0, step=0.05, key="w_trans",
             )
         with pref_c3:
             w_quota = st.slider(
-                "🎯 录取保险", 0.0, 1.0, step=0.05, key="w_quota",
+                "录取保险", 0.0, 1.0, step=0.05, key="w_quota",
             )
         total_w = w_rep + w_trans + w_quota
         if total_w > 0:
@@ -1180,7 +1231,7 @@ def main():
     btn_c1, btn_c2, btn_c3 = st.columns([1, 2, 1])
     with btn_c2:
         run_clicked = st.button(
-            "🚀 立即分析", type="primary", use_container_width=True,
+            "开始分析", type="primary", use_container_width=True,
         )
 
     # =================================================================
