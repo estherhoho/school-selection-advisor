@@ -935,6 +935,17 @@ def main():
         ),
     )
 
+    # 排名超过 20 时给警示（当前数据库只覆盖 6 所顶尖高中，名额有限）
+    _rank_check = st.session_state.get("student_rank")
+    if _rank_check is not None and _rank_check > 20:
+        st.sidebar.warning(
+            f"⚠️ 排名 {_rank_check} 偏后\n\n"
+            "本工具目前只收录了 **6 所顶尖高中**（华附/执信/广雅/省实/六中/广附），"
+            "总共只有 **15 个名额**给一中。\n\n"
+            "排名 20 以后被这 6 所学校录取的概率较低，"
+            "结果**仅供参考**，建议同时考虑其他批次的高中。"
+        )
+
     st.sidebar.markdown("---")
     st.sidebar.markdown("### 2️⃣ 您最看重学校的什么")
     st.sidebar.caption("调整三个滑块，决定推荐方案的偏好")
@@ -1159,8 +1170,44 @@ def main():
     )
 
     # =================================================================
-    # 🏆 HERO：三档推荐方案
+    # 🏆 HERO：三档推荐方案（先做"低录取率"健康检查）
     # =================================================================
+
+    # 找保方案最优组合，看综合录取率高不高
+    bao_df = strategies_df[strategies_df["策略"] == "保"]
+    if len(bao_df) > 0:
+        best_bao = bao_df.sort_values("综合录取率", ascending=False).iloc[0]
+        best_bao_p_any = float(best_bao["综合录取率"])
+    else:
+        best_bao_p_any = 0.0
+
+    chong_df = strategies_df[strategies_df["策略"] == "冲"]
+    if len(chong_df) > 0:
+        best_chong_p1 = float(chong_df["1志录取率"].max())
+    else:
+        best_chong_p1 = 0.0
+
+    # 警示 1：所有方案的综合录取率都不高（< 80%）→ 危险信号
+    if best_bao_p_any < 0.80:
+        st.error(
+            f"### ⚠️ 重要提醒\n\n"
+            f"根据您的排名（**第 {student_rank} 名**），即使填**最稳的方案**，"
+            f"被这 6 所目标高中录取的最高概率也只有 **{best_bao_p_any * 100:.0f}%**。\n\n"
+            f"**这意味着**：很可能 3 个志愿全部滑档（落到第三批次或职高）。\n\n"
+            f"**建议**：\n"
+            f"- 本工具目前只收录了 **6 所顶尖高中**（华附/执信/广雅/省实/六中/广附）。\n"
+            f"- 您的排名可能更适合**第三批次**的中等高中（如 协和、真光、一中等）。\n"
+            f"- **请把本工具的结果作为参考**，务必结合班主任建议综合判断。"
+        )
+    elif best_bao_p_any < 0.95:
+        st.warning(
+            f"### 💡 温馨提示\n\n"
+            f"以您的排名（**第 {student_rank} 名**），保方案的录取率约 "
+            f"**{best_bao_p_any * 100:.0f}%**。\n\n"
+            f"虽然有较大把握，但**仍有 {(1-best_bao_p_any)*100:.0f}% 滑档风险**。"
+            f"建议同时关注**第三批次**的备选学校。"
+        )
+
     st.markdown("##")
     st.markdown("## 🏆 我们为您推荐的 3 套填报方案")
     st.caption("根据您的偏好，从 120 种可能组合中挑出最优的三档")
