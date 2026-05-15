@@ -1037,12 +1037,12 @@ def main():
         ),
     )
     st.sidebar.number_input(
-        "考生最近一次模拟考成绩（可选）",
-        min_value=0.0, max_value=900.0, step=1.0,
+        "一模成绩（满分 810 计算）",
+        min_value=0.0, max_value=810.0, step=1.0,
         value=None, key="latest_score",
         placeholder="例：720",
         help=(
-            "最近一次模拟考的总分。\n"
+            "孩子的一模总分（满分 810）。\n"
             "此项**不影响推荐计算**（模型基于排名），\n"
             "但有助于我们后续校准模型 / 你自己留存记录。"
         ),
