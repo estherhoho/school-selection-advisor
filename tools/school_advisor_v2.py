@@ -1004,16 +1004,26 @@ def main():
     # =================================================================
     # 计算参数
     # =================================================================
-    weights = {"reputation": w_rep_n, "transport": w_trans_n, "quota": w_quota_n}
-    zizu_rates = (
-        [zizu_top3]*3 + [zizu_top6]*3 + [zizu_top9]*3 + [zizu_rest]*6
-    )
-    advisor = SchoolAdvisorV2(schools_df, top_n=15, zizu_rates=zizu_rates)
-
     student_name = st.session_state.get("student_name") or ""
     middle_school = st.session_state.get("middle_school")
     student_rank = st.session_state.get("student_rank")
     student_std = st.session_state.get("student_std")
+
+    # 关键：top_n 必须大于学生排名（否则模型把排名 30 的学生当成排名 15）
+    # 留 10 名 buffer 给 ±2σ 波动
+    rank_for_topn = student_rank if student_rank is not None else 15
+    std_for_topn = int(student_std) if student_std is not None else 3
+    effective_top_n = max(15, rank_for_topn + max(10, std_for_topn * 3))
+
+    weights = {"reputation": w_rep_n, "transport": w_trans_n, "quota": w_quota_n}
+    # 自招概率：前 9 名按用户配置，10 名后用兜底值（默认 0.005，远低于前面）
+    zizu_rates = (
+        [zizu_top3] * 3 + [zizu_top6] * 3 + [zizu_top9] * 3
+        + [zizu_rest] * (effective_top_n - 9)
+    )
+    advisor = SchoolAdvisorV2(
+        schools_df, top_n=effective_top_n, zizu_rates=zizu_rates
+    )
 
     # =================================================================
     # 点击「立即分析」时跑算法 + 静默存档（含输入校验）
