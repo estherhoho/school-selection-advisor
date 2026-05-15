@@ -1187,11 +1187,11 @@ def main():
     # 第一排：孩子姓名 + 孩子的初中
     form_c1, form_c2 = st.columns(2)
     with form_c1:
-        st.markdown("**孩子姓名 \\***")
+        st.markdown("**学生昵称 \\***")
         st.text_input(
-            "姓名", key="student_name",
+            "昵称", key="student_name",
             placeholder="",
-            help="可填昵称（如担心隐私）。",
+            help="随便填，不需要真名（保护隐私）。",
             label_visibility="collapsed",
         )
     with form_c2:
@@ -1343,7 +1343,7 @@ def main():
     # =================================================================
     missing = []
     if not student_name.strip():
-        missing.append("孩子姓名")
+        missing.append("学生昵称")
     if student_rank is None:
         missing.append("集团排名")
     if student_std is None:
