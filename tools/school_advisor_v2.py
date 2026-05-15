@@ -1184,15 +1184,26 @@ def main():
     st.markdown("### 填写孩子信息")
     st.caption("`*` 为必填项 · 数据仅本人查看，不会公开")
 
-    # 第一排：初中 + 集团排名
+    # 第一排：孩子姓名 + 孩子的初中
     form_c1, form_c2 = st.columns(2)
     with form_c1:
+        st.markdown("**孩子姓名 \\***")
+        st.text_input(
+            "姓名", key="student_name",
+            placeholder="",
+            help="可填昵称（如担心隐私）。",
+            label_visibility="collapsed",
+        )
+    with form_c2:
         st.markdown("**孩子的初中 \\***")
         st.selectbox(
             "初中", middle_school_options, key="middle_school",
             label_visibility="collapsed",
         )
-    with form_c2:
+
+    # 第二排：集团排名 + 排名波动
+    form_c3, form_c4 = st.columns(2)
+    with form_c3:
         st.markdown("**集团排名 \\***")
         st.selectbox(
             "排名",
@@ -1203,10 +1214,7 @@ def main():
             help="孩子在初中所属教育集团内的最新排名。若不确定可凭近期模考预估。",
             label_visibility="collapsed",
         )
-
-    # 第二排：波动 + 姓名
-    form_c3, form_c4 = st.columns(2)
-    with form_c3:
+    with form_c4:
         st.markdown("**排名波动 \\* （±N 名）**")
         st.select_slider(
             "波动",
@@ -1216,23 +1224,15 @@ def main():
             help="排名上下浮动范围。8-12 名 → 填 2；7-13 → 3；不确定填 3。",
             label_visibility="collapsed",
         )
-    with form_c4:
-        st.markdown("**孩子姓名 \\***")
-        st.text_input(
-            "姓名", key="student_name",
-            placeholder="",
-            help="可填昵称（如担心隐私）。",
-            label_visibility="collapsed",
-        )
 
-    # 一模成绩（可选，全宽）
-    st.markdown("**一模成绩 *(可选，满分 810)*** ")
+    # 第三排：一模成绩（必填，全宽）
+    st.markdown("**一模成绩 \\* （满分 810）**")
     st.number_input(
         "一模",
         min_value=0.0, max_value=810.0, step=1.0,
         value=None, key="latest_score",
         placeholder="",
-        help="孩子一模总分。此项不影响推荐计算（模型基于排名）。",
+        help="孩子一模总分（满分 810）。",
         label_visibility="collapsed",
     )
 
@@ -1339,7 +1339,7 @@ def main():
 
     # =================================================================
     # 点击「立即分析」时跑算法 + 静默存档（含输入校验）
-    # 必填：姓名 + 集团排名 + 排名波动（一模成绩可选）
+    # 必填：姓名 + 集团排名 + 排名波动 + 一模成绩
     # =================================================================
     missing = []
     if not student_name.strip():
@@ -1348,6 +1348,8 @@ def main():
         missing.append("集团排名")
     if student_std is None:
         missing.append("排名波动")
+    if st.session_state.get("latest_score") is None:
+        missing.append("一模成绩")
 
     if run_clicked and missing:
         st.error(
