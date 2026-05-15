@@ -1069,7 +1069,7 @@ def main():
             options=list(range(1, 51)),
             index=None,
             key="student_rank",
-            placeholder="如 10（数字越小越好）",
+            placeholder="请选择",
             help="孩子在初中所属教育集团内的最新排名。若不确定可凭近期模考预估。",
             label_visibility="collapsed",
         )
@@ -1087,11 +1087,11 @@ def main():
             label_visibility="collapsed",
         )
     with form_c4:
-        st.markdown("**🧒 孩子姓名 *(可选)*** ")
+        st.markdown("**🧒 孩子姓名 \\***")
         st.text_input(
             "姓名", key="student_name",
-            placeholder="小猫、小A、张三 都可以",
-            help="只用于个性化展示。担心隐私可填昵称。",
+            placeholder="",
+            help="可填昵称（如担心隐私）。",
             label_visibility="collapsed",
         )
 
@@ -1101,7 +1101,7 @@ def main():
         "一模",
         min_value=0.0, max_value=810.0, step=1.0,
         value=None, key="latest_score",
-        placeholder="如 720（不影响推荐计算，可留空）",
+        placeholder="",
         help="孩子一模总分。此项不影响推荐计算（模型基于排名）。",
         label_visibility="collapsed",
     )
@@ -1132,33 +1132,36 @@ def main():
         )
 
     # =================================================================
-    # 侧边栏 — 只保留高级设置
+    # 高级设置（搬到主区域，默认折叠 — sidebar 完全空掉）
     # =================================================================
-    st.sidebar.markdown("## ⚙️ 高级设置")
-    st.sidebar.caption("一般用户不需要调整。")
+    with st.expander("⚙️ 高级设置（一般用户不需要调整）", expanded=False):
+        st.caption("以下参数影响模型推断方式，默认值适合绝大多数情况。")
 
-    with st.sidebar.expander("竞争集中度 T", expanded=False):
-        T = st.slider(
-            "扎堆 ◀────▶ 分散",
-            0.05, 5.0, step=0.05, key="T",
-            help="顶尖学生选学校的扎堆程度。默认 1.0。",
-        )
-        st.caption(f"当前：{T:.2f}（默认 1.0）")
+        adv_c1, adv_c2 = st.columns(2)
+        with adv_c1:
+            st.markdown("**竞争集中度 T**")
+            T = st.slider(
+                "扎堆 ◀────▶ 分散",
+                0.05, 5.0, step=0.05, key="T",
+                help="顶尖学生选学校的扎堆程度。默认 1.0。",
+            )
+            st.caption(f"当前：{T:.2f}（默认 1.0）")
 
-    with st.sidebar.expander("自主招生分流概率", expanded=False):
-        st.caption("前几名同学走自招提前上岸的概率")
-        zizu_top3 = st.slider("第 1-3 名", 0.0, 0.6, step=0.05, key="zizu_top3")
-        zizu_top6 = st.slider("第 4-6 名", 0.0, 0.4, step=0.05, key="zizu_top6")
-        zizu_top9 = st.slider("第 7-9 名", 0.0, 0.2, step=0.01, key="zizu_top9")
-        zizu_rest = st.slider("第 10-15 名", 0.0, 0.1, step=0.005, key="zizu_rest")
+            st.markdown("**模拟精度**")
+            n_sim_options = [10_000, 50_000, 100_000, 500_000, 1_000_000]
+            n_sim_mc = st.select_slider(
+                "模拟次数", options=n_sim_options, key="n_sim_mc",
+                help="次数越多越准。10万 ≈ 1秒，100万 ≈ 8秒。",
+            )
+            st.caption(f"精度约 ±{1.0/np.sqrt(n_sim_mc)*100:.2f}%")
 
-    with st.sidebar.expander("模拟精度", expanded=False):
-        n_sim_options = [10_000, 50_000, 100_000, 500_000, 1_000_000]
-        n_sim_mc = st.select_slider(
-            "模拟次数", options=n_sim_options, key="n_sim_mc",
-            help="次数越多越准。10万 ≈ 1秒，100万 ≈ 8秒。",
-        )
-        st.caption(f"精度约 ±{1.0/np.sqrt(n_sim_mc)*100:.2f}%")
+        with adv_c2:
+            st.markdown("**自主招生分流概率**")
+            st.caption("前几名同学走自招提前上岸的概率")
+            zizu_top3 = st.slider("第 1-3 名", 0.0, 0.6, step=0.05, key="zizu_top3")
+            zizu_top6 = st.slider("第 4-6 名", 0.0, 0.4, step=0.05, key="zizu_top6")
+            zizu_top9 = st.slider("第 7-9 名", 0.0, 0.2, step=0.01, key="zizu_top9")
+            zizu_rest = st.slider("第 10-15 名", 0.0, 0.1, step=0.005, key="zizu_rest")
 
     seed = st.session_state.get("seed", 42)
 
@@ -1206,9 +1209,11 @@ def main():
 
     # =================================================================
     # 点击「立即分析」时跑算法 + 静默存档（含输入校验）
-    # 只校验必填项：集团排名 + 排名波动（姓名/分数可选）
+    # 必填：姓名 + 集团排名 + 排名波动（一模成绩可选）
     # =================================================================
     missing = []
+    if not student_name.strip():
+        missing.append("孩子姓名")
     if student_rank is None:
         missing.append("集团排名")
     if student_std is None:
