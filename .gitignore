@@ -4,3 +4,11 @@ __pycache__/
 ~$*
 .DS_Store
 .tmp/
+
+# 用户数据 - 不入库
+silent_log.jsonl
+student_profiles.json
+
+# 临时/生成文件
+School_Selection_Advisor.zip
+/tmp/
