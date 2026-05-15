@@ -997,42 +997,109 @@ def main():
     init_session_defaults(middle_school_options[0])
 
     # =================================================================
-    # HERO — 简洁深绿渐变，去 AI 装饰
+    # HERO — 动画渐变 + 清晰白字 + 价值主张
     # =================================================================
     st.markdown(
         """
-<div style="background: linear-gradient(135deg, #065F46 0%, #047857 50%, #10B981 100%);
-            border-radius: 20px; padding: 40px 36px; margin: 8px 0 24px 0;
-            box-shadow: 0 8px 32px rgba(4,120,87,0.25);
-            position: relative; overflow: hidden;">
-  <div style="font-size: 13px; color: rgba(255,255,255,0.85); font-weight: 500;
-              letter-spacing: 3px; margin-bottom: 14px;">
-    广州中考 · 第二批次志愿规划
+<style>
+@keyframes gradientShift {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: 0.85; transform: scale(1.05); }
+}
+@keyframes shimmer {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+.hero-banner {
+  background: linear-gradient(120deg, #064E3B 0%, #047857 25%, #059669 50%, #10B981 75%, #34D399 100%);
+  background-size: 300% 300%;
+  animation: gradientShift 12s ease infinite;
+  border-radius: 22px;
+  padding: 44px 40px;
+  margin: 8px 0 28px 0;
+  box-shadow: 0 12px 40px rgba(4,120,87,0.30);
+  position: relative;
+  overflow: hidden;
+}
+.hero-shimmer {
+  position: absolute; top:0; left:0; width:60%; height:100%;
+  background: linear-gradient(110deg, transparent 30%, rgba(255,255,255,0.10) 50%, transparent 70%);
+  animation: shimmer 6s ease-in-out infinite;
+  pointer-events: none;
+}
+.hero-pill {
+  display: inline-block;
+  background: rgba(255,255,255,0.18);
+  backdrop-filter: blur(8px);
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 12px;
+  color: white;
+  letter-spacing: 2px;
+  font-weight: 600;
+  border: 1px solid rgba(255,255,255,0.25);
+  animation: pulse 3s ease-in-out infinite;
+}
+.hero-title {
+  color: #ffffff !important;
+  font-size: 46px !important;
+  font-weight: 900 !important;
+  margin: 18px 0 16px 0 !important;
+  line-height: 1.1 !important;
+  letter-spacing: -1.5px !important;
+  text-shadow: 0 2px 12px rgba(0,0,0,0.15);
+}
+.hero-subtitle {
+  font-size: 19px;
+  color: #ffffff;
+  font-weight: 500;
+  line-height: 1.65;
+  max-width: 780px;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.1);
+}
+.hero-subtitle b { font-weight: 800; color: #FEF3C7; }
+.hero-audience {
+  margin-top: 18px;
+  font-size: 14px;
+  color: rgba(255,255,255,0.85);
+  line-height: 1.6;
+}
+.hero-kpis {
+  display: flex; gap: 36px; margin-top: 28px;
+  padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.25);
+  flex-wrap: wrap;
+}
+.hero-kpi-num { font-size: 22px; font-weight: 800; color: #FFFFFF; }
+.hero-kpi-label { font-size: 13px; color: rgba(255,255,255,0.75); margin-left: 4px; }
+@media (max-width: 768px) {
+  .hero-banner { padding: 28px 22px; }
+  .hero-title { font-size: 32px !important; }
+  .hero-subtitle { font-size: 15px; }
+  .hero-kpis { gap: 18px; }
+}
+</style>
+
+<div class="hero-banner">
+  <div class="hero-shimmer"></div>
+  <span class="hero-pill">广州中考 · 第二批次志愿规划</span>
+  <h1 class="hero-title">中考升学规划助手</h1>
+  <div class="hero-subtitle">
+    告别"凭感觉填志愿"，<b>用数据看清每所学校的录取概率</b>。<br>
+    冲、稳、保 三档方案一目了然 — 让你的孩子<b>稳上心仪学校，不滑档</b>。
   </div>
-  <h1 style="color: white !important; font-size: 44px !important; font-weight: 800 !important;
-             margin: 0 0 18px 0 !important; line-height: 1.15 !important;
-             letter-spacing: -1px;">
-    中考升学规划助手
-  </h1>
-  <div style="font-size: 18px; color: rgba(255,255,255,0.95); font-weight: 500;
-              line-height: 1.6; max-width: 760px;">
-    30 秒填表，1 分钟出 3 套科学填报方案。<br>
-    <b style="font-weight:700;">看准录取概率，不滑档。</b>
+  <div class="hero-audience">
+    👨‍👩‍👧 适合人群：广州中考<b style="color:#FEF3C7;">第二批次考生家长</b> ·
+    一模成绩出来后还在纠结志愿排序 · 不想凭"道听途说"做决定
   </div>
-  <div style="display: flex; gap: 32px; margin-top: 24px; flex-wrap: wrap;
-              padding-top: 18px; border-top: 1px solid rgba(255,255,255,0.2);">
-    <div style="color: rgba(255,255,255,0.9); font-size: 14px;">
-      <span style="font-size:17px;font-weight:700;">10 万次</span>
-      <span style="color:rgba(255,255,255,0.7);"> 蒙特卡洛模拟</span>
-    </div>
-    <div style="color: rgba(255,255,255,0.9); font-size: 14px;">
-      <span style="font-size:17px;font-weight:700;">官方</span>
-      <span style="color:rgba(255,255,255,0.7);"> 公开数据</span>
-    </div>
-    <div style="color: rgba(255,255,255,0.9); font-size: 14px;">
-      <span style="font-size:17px;font-weight:700;">不存</span>
-      <span style="color:rgba(255,255,255,0.7);"> 隐私信息</span>
-    </div>
+  <div class="hero-kpis">
+    <div><span class="hero-kpi-num">10 万次</span><span class="hero-kpi-label">蒙特卡洛模拟</span></div>
+    <div><span class="hero-kpi-num">官方</span><span class="hero-kpi-label">公开数据</span></div>
+    <div><span class="hero-kpi-num">不存</span><span class="hero-kpi-label">隐私信息</span></div>
   </div>
 </div>
 """,
