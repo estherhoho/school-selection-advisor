@@ -35,6 +35,7 @@ TRANSPORT_SCORES = {"高": 1.0, "中": 0.5, "低": 0.0}
 # 所有可保存的输入参数（key 名 = session_state key 名）
 PROFILE_KEYS = [
     "middle_school", "student_name", "student_rank", "student_std",
+    "latest_score",
     "T", "w_rep", "w_trans", "w_quota",
     "zizu_top3", "zizu_top6", "zizu_top9", "zizu_rest",
     "choice_1", "choice_2", "choice_3",
@@ -125,6 +126,7 @@ def _build_row_from_record(record: dict) -> list:
             {"inputs": inputs, "extra": record.get("extra", {})},
             ensure_ascii=False,
         ),
+        inputs.get("latest_score") if inputs.get("latest_score") is not None else "",
     ]
 
 
@@ -971,6 +973,17 @@ def main():
         help=(
             "孩子每次考试排名上下浮动的范围。\n"
             "经常在 8-12 名 → 填 2；7-13 名 → 填 3；非常稳定 → 填 1。"
+        ),
+    )
+    st.sidebar.number_input(
+        "考生最近一次模拟考成绩（可选）",
+        min_value=0.0, max_value=900.0, step=1.0,
+        value=None, key="latest_score",
+        placeholder="例：720",
+        help=(
+            "最近一次模拟考的总分。\n"
+            "此项**不影响推荐计算**（模型基于排名），\n"
+            "但有助于我们后续校准模型 / 你自己留存记录。"
         ),
     )
 
