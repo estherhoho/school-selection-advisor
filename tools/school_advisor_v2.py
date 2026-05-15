@@ -111,36 +111,86 @@ GOOGLE_SHEET_ID = "1k7KDzAsfVLm90b-_k4t_JaQE7PkWjlokbpc2QNYYYIM"
 GOOGLE_SHEET_RANGE = "events!A1"
 
 
-def _write_to_google_sheet(record: dict) -> None:
-    """通过 gws CLI 追加一行到 Google Sheet。失败静默吞掉。"""
-    import subprocess
+def _build_row_from_record(record: dict) -> list:
+    inputs = record.get("inputs", {})
+    return [
+        record["timestamp"],
+        record.get("session_id", ""),
+        record["event"],
+        str(inputs.get("student_name", "") or ""),
+        str(inputs.get("middle_school", "") or ""),
+        inputs.get("student_rank") if inputs.get("student_rank") is not None else "",
+        inputs.get("student_std") if inputs.get("student_std") is not None else "",
+        json.dumps(
+            {"inputs": inputs, "extra": record.get("extra", {})},
+            ensure_ascii=False,
+        ),
+    ]
+
+
+@st.cache_resource(show_spinner=False)
+def _get_gsheet_worksheet():
+    """初始化 Google Sheet 客户端 — 缓存连接对象。
+    优先级：
+      1. Streamlit secrets["gcp_service_account"]（云端部署）
+      2. 本地 service account JSON 文件（开发）
+      3. 返回 None（写日志会 fallback 到 gws CLI）
+    """
     try:
-        inputs = record.get("inputs", {})
-        row = [
-            record["timestamp"],
-            record.get("session_id", ""),
-            record["event"],
-            str(inputs.get("student_name", "") or ""),
-            str(inputs.get("middle_school", "") or ""),
-            inputs.get("student_rank") if inputs.get("student_rank") is not None else "",
-            inputs.get("student_std") if inputs.get("student_std") is not None else "",
-            json.dumps(
-                {"inputs": inputs, "extra": record.get("extra", {})},
-                ensure_ascii=False,
-            ),
-        ]
+        import gspread
+        from google.oauth2.service_account import Credentials
+
+        scopes = ["https://www.googleapis.com/auth/spreadsheets"]
+        creds = None
+
+        # 优先 Streamlit secrets
+        if hasattr(st, "secrets") and "gcp_service_account" in st.secrets:
+            info = dict(st.secrets["gcp_service_account"])
+            creds = Credentials.from_service_account_info(info, scopes=scopes)
+        else:
+            # 找本地 JSON 文件（仅开发）
+            for fname in [
+                "school-advisor-logger-42d23ea1328b.json",
+            ]:
+                p = DATA_DIR / fname
+                if p.exists():
+                    creds = Credentials.from_service_account_file(str(p), scopes=scopes)
+                    break
+
+        if creds is None:
+            return None
+
+        client = gspread.authorize(creds)
+        return client.open_by_key(GOOGLE_SHEET_ID).sheet1
+    except Exception:
+        return None
+
+
+def _write_to_google_sheet(record: dict) -> None:
+    """优先用 gspread (服务账号) 写 Sheet；失败则尝试 gws CLI；都失败静默吞。"""
+    row = _build_row_from_record(record)
+    # 1) 试 gspread
+    try:
+        ws = _get_gsheet_worksheet()
+        if ws is not None:
+            ws.append_row(row, value_input_option="USER_ENTERED")
+            return
+    except Exception:
+        pass
+    # 2) Fallback: gws CLI（仅本地开发能用）
+    try:
+        import subprocess
         params = {
             "spreadsheetId": GOOGLE_SHEET_ID,
             "range": GOOGLE_SHEET_RANGE,
             "valueInputOption": "USER_ENTERED",
             "insertDataOption": "INSERT_ROWS",
         }
-        body = {"values": [row]}
         subprocess.run(
             [
                 "gws", "sheets", "spreadsheets", "values", "append",
                 "--params", json.dumps(params),
-                "--json", json.dumps(body, ensure_ascii=False),
+                "--json", json.dumps({"values": [row]}, ensure_ascii=False),
             ],
             capture_output=True, timeout=15, check=False,
         )

@@ -12,3 +12,7 @@ student_profiles.json
 # 临时/生成文件
 School_Selection_Advisor.zip
 /tmp/
+
+# Service account credentials - NEVER commit
+school-advisor-logger-*.json
+*-service-account*.json

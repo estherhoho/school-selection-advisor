@@ -4,3 +4,5 @@ scipy>=1.10
 streamlit>=1.30
 openpyxl>=3.1
 plotly>=5.18
+gspread>=6.0
+google-auth>=2.20
