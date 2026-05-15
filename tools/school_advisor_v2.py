@@ -112,21 +112,78 @@ GOOGLE_SHEET_ID = "1k7KDzAsfVLm90b-_k4t_JaQE7PkWjlokbpc2QNYYYIM"
 GOOGLE_SHEET_RANGE = "events!A1"
 
 
+SCHOOL_NAMES_BY_INDEX = [
+    "华附(石牌)", "执信(越秀)", "广雅(荔湾)",
+    "省实(荔湾)", "六中(海珠)", "广附(本部)",
+]
+
+
+def _idx_to_school(v) -> str:
+    """把 choice index (0-5) 或 label string 转成可读学校名。"""
+    if isinstance(v, int) and 0 <= v < len(SCHOOL_NAMES_BY_INDEX):
+        return SCHOOL_NAMES_BY_INDEX[v]
+    if isinstance(v, str):
+        return v
+    return ""
+
+
 def _build_row_from_record(record: dict) -> list:
     inputs = record.get("inputs", {})
+    extra = record.get("extra", {})
+    event = record["event"]
+
+    # 用户填的 1/2/3 志愿（可读名）
+    if event == "custom_run":
+        choices_lbl = extra.get("choices", [])
+        c1 = choices_lbl[0] if len(choices_lbl) > 0 else ""
+        c2 = choices_lbl[1] if len(choices_lbl) > 1 else ""
+        c3 = choices_lbl[2] if len(choices_lbl) > 2 else ""
+    else:
+        c1 = _idx_to_school(inputs.get("choice_1"))
+        c2 = _idx_to_school(inputs.get("choice_2"))
+        c3 = _idx_to_school(inputs.get("choice_3"))
+
+    # 推荐冲/稳/保（只在 analyze 事件才有）
+    top_picks = extra.get("top_picks", {}) if isinstance(extra, dict) else {}
+    rec_chong = top_picks.get("冲", {}).get("1志", "") if isinstance(top_picks.get("冲"), dict) else ""
+    rec_wen = top_picks.get("稳", {}).get("1志", "") if isinstance(top_picks.get("稳"), dict) else ""
+    rec_bao = top_picks.get("保", {}).get("1志", "") if isinstance(top_picks.get("保"), dict) else ""
+
+    # 偏好 (声誉/交通/名额)
+    def _to_pct(x):
+        try: return f"{float(x)*100:.0f}%"
+        except: return ""
+    pref = (
+        f"{_to_pct(inputs.get('w_rep'))} / "
+        f"{_to_pct(inputs.get('w_trans'))} / "
+        f"{_to_pct(inputs.get('w_quota'))}"
+    )
+
+    # 综合录取率：custom_run 用 p_any；analyze 用保方案的综合
+    if event == "custom_run":
+        p_any = extra.get("p_any") if isinstance(extra, dict) else None
+    else:
+        bao = top_picks.get("保", {}) if isinstance(top_picks.get("保"), dict) else {}
+        p_any = bao.get("综合录取率")
+    p_any_str = f"{float(p_any)*100:.1f}%" if p_any is not None else ""
+
     return [
         record["timestamp"],
         record.get("session_id", ""),
-        record["event"],
+        event,
         str(inputs.get("student_name", "") or ""),
         str(inputs.get("middle_school", "") or ""),
         inputs.get("student_rank") if inputs.get("student_rank") is not None else "",
         inputs.get("student_std") if inputs.get("student_std") is not None else "",
+        inputs.get("latest_score") if inputs.get("latest_score") is not None else "",
+        c1, c2, c3,
+        rec_chong, rec_wen, rec_bao,
+        pref,
+        p_any_str,
         json.dumps(
-            {"inputs": inputs, "extra": record.get("extra", {})},
+            {"inputs": inputs, "extra": extra},
             ensure_ascii=False,
         ),
-        inputs.get("latest_score") if inputs.get("latest_score") is not None else "",
     ]
 
 
