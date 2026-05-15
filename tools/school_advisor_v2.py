@@ -996,113 +996,163 @@ def main():
     init_session_defaults(middle_school_options[0])
 
     # =================================================================
-    # 顶部标题
+    # 🎯 HERO — 标题 + 价值主张
     # =================================================================
     st.title("🎓 中考升学规划助手")
     st.markdown(
-        '<p style="font-size:18px;color:#047857;margin-top:-12px;">'
-        "🌿 科学填报，稳中有进 · 基于排名 + 名额博弈的概率推荐 · 适用广州中考第二批次"
+        '<p style="font-size:18px;color:#047857;margin-top:-12px;margin-bottom:8px;">'
+        "🌿 30 秒填表 · 1 分钟出 3 套科学填报方案 · 看准录取概率不滑档"
         "</p>",
         unsafe_allow_html=True,
     )
 
     # =================================================================
-    # 侧边栏 — 全部输入
+    # 永久 intro：冲/稳/保 三档说明（始终可见）
     # =================================================================
-    st.sidebar.markdown("## 📝 请填写信息")
-
-    st.sidebar.markdown("### 1️⃣ 孩子的基本情况")
-    st.sidebar.selectbox("孩子的初中学校", middle_school_options, key="middle_school")
-    st.sidebar.text_input(
-        "孩子姓名", key="student_name", placeholder="例：张三",
-    )
-    st.sidebar.number_input(
-        "集团排名（若不确定，预估）", min_value=1, max_value=50, step=1,
-        value=None, key="student_rank",
-        placeholder="例：10（数字越小越好）",
-        help=(
-            "孩子在初中所属教育集团内的最新排名。\n"
-            "1 = 第一名（最好）。\n"
-            "若不确定具体排名，请凭近期模考表现预估。"
-        ),
-    )
-    st.sidebar.number_input(
-        "排名波动幅度（约 ±N 名）",
-        min_value=0.0, max_value=20.0, step=0.5,
-        value=None, key="student_std",
-        placeholder="例：3（不确定就填 3）",
-        help=(
-            "孩子每次考试排名上下浮动的范围。\n"
-            "经常在 8-12 名 → 填 2；7-13 名 → 填 3；非常稳定 → 填 1。"
-        ),
-    )
-    st.sidebar.number_input(
-        "一模成绩（满分 810 计算）",
-        min_value=0.0, max_value=810.0, step=1.0,
-        value=None, key="latest_score",
-        placeholder="例：720",
-        help=(
-            "孩子的一模总分（满分 810）。\n"
-            "此项**不影响推荐计算**（模型基于排名），\n"
-            "但有助于我们后续校准模型 / 你自己留存记录。"
-        ),
-    )
-
-    # 排名超过 20 时给警示（当前数据库只覆盖 6 所顶尖高中，名额有限）
-    _rank_check = st.session_state.get("student_rank")
-    if _rank_check is not None and _rank_check > 20:
-        st.sidebar.warning(
-            f"⚠️ 排名 {_rank_check} 偏后\n\n"
-            "本工具目前只收录了 **6 所顶尖高中**（华附/执信/广雅/省实/六中/广附），"
-            "总共只有 **15 个名额**给一中。\n\n"
-            "排名 20 以后被这 6 所学校录取的概率较低，"
-            "结果**仅供参考**，建议同时考虑其他批次的高中。"
+    intro_c1, intro_c2, intro_c3 = st.columns(3)
+    with intro_c1:
+        st.markdown(
+            """
+<div style="background:linear-gradient(135deg,#FEF2F2 0%,#FEE2E2 100%);
+            border-radius:12px;padding:16px;border-left:4px solid #EF4444;">
+  <div style="font-size:18px;font-weight:700;color:#991B1B;">🔥 冲 — 敢拼一把</div>
+  <div style="font-size:14px;color:#7F1D1D;margin-top:4px;">
+    第一志愿填顶尖学校，万一中了就赚到。
+  </div>
+</div>
+""", unsafe_allow_html=True,
+        )
+    with intro_c2:
+        st.markdown(
+            """
+<div style="background:linear-gradient(135deg,#FFFBEB 0%,#FEF3C7 100%);
+            border-radius:12px;padding:16px;border-left:4px solid #F59E0B;">
+  <div style="font-size:18px;font-weight:700;color:#92400E;">✅ 稳 — 踏实选择</div>
+  <div style="font-size:14px;color:#78350F;margin-top:4px;">
+    第一志愿填中等把握的学校，进可攻退可守。
+  </div>
+</div>
+""", unsafe_allow_html=True,
+        )
+    with intro_c3:
+        st.markdown(
+            """
+<div style="background:linear-gradient(135deg,#F0FDF4 0%,#DCFCE7 100%);
+            border-radius:12px;padding:16px;border-left:4px solid #10B981;">
+  <div style="font-size:18px;font-weight:700;color:#065F46;">🛡️ 保 — 安全上岸</div>
+  <div style="font-size:14px;color:#064E3B;margin-top:4px;">
+    第一志愿填一定能上的学校，确保不滑档。
+  </div>
+</div>
+""", unsafe_allow_html=True,
         )
 
-    st.sidebar.markdown("---")
-    st.sidebar.markdown("### 2️⃣ 您最看重学校的什么")
-    st.sidebar.caption("调整三个滑块，决定推荐方案的偏好")
-    w_rep = st.sidebar.slider(
-        "🏆 学校档次（声誉）", 0.0, 1.0, step=0.05, key="w_rep",
-        help="越高 = 越优先推荐顶尖学校（如华附）",
-    )
-    w_trans = st.sidebar.slider(
-        "🚌 上学距离（交通）", 0.0, 1.0, step=0.05, key="w_trans",
-        help="越高 = 越优先推荐交通方便的学校",
-    )
-    w_quota = st.sidebar.slider(
-        "🎯 录取保险（名额多）", 0.0, 1.0, step=0.05, key="w_quota",
-        help="越高 = 越优先推荐本初中分到名额多的学校",
-    )
-    total_w = w_rep + w_trans + w_quota
-    if total_w > 0:
-        w_rep_n, w_trans_n, w_quota_n = w_rep/total_w, w_trans/total_w, w_quota/total_w
-    else:
-        w_rep_n = w_trans_n = w_quota_n = 1/3
-    st.sidebar.caption(
-        f"占比：档次 **{w_rep_n:.0%}** / 距离 **{w_trans_n:.0%}** / 保险 **{w_quota_n:.0%}**"
+    # =================================================================
+    # 📝 表单（主区域，移动端友好）
+    # =================================================================
+    st.markdown("##")
+    st.markdown("### 📝 填写孩子信息")
+    st.caption("`*` 为必填项 · 数据**仅本人查看**，不会公开")
+
+    # 第一排：初中 + 集团排名
+    form_c1, form_c2 = st.columns(2)
+    with form_c1:
+        st.markdown("**🏫 孩子的初中 \\***")
+        st.selectbox(
+            "初中", middle_school_options, key="middle_school",
+            label_visibility="collapsed",
+        )
+    with form_c2:
+        st.markdown("**📊 集团排名 \\***")
+        st.selectbox(
+            "排名",
+            options=list(range(1, 51)),
+            index=None,
+            key="student_rank",
+            placeholder="如 10（数字越小越好）",
+            help="孩子在初中所属教育集团内的最新排名。若不确定可凭近期模考预估。",
+            label_visibility="collapsed",
+        )
+
+    # 第二排：波动 + 姓名（可选）
+    form_c3, form_c4 = st.columns(2)
+    with form_c3:
+        st.markdown("**📈 排名波动 \\* （±N 名）**")
+        st.select_slider(
+            "波动",
+            options=[0, 1, 2, 3, 4, 5, 7, 10, 15],
+            value=st.session_state.get("student_std") or 3,
+            key="student_std",
+            help="排名上下浮动范围。8-12 名 → 填 2；7-13 → 3；不确定填 3。",
+            label_visibility="collapsed",
+        )
+    with form_c4:
+        st.markdown("**🧒 孩子姓名 *(可选)*** ")
+        st.text_input(
+            "姓名", key="student_name",
+            placeholder="小猫、小A、张三 都可以",
+            help="只用于个性化展示。担心隐私可填昵称。",
+            label_visibility="collapsed",
+        )
+
+    # 一模成绩（可选，全宽）
+    st.markdown("**📋 一模成绩 *(可选，满分 810)*** ")
+    st.number_input(
+        "一模",
+        min_value=0.0, max_value=810.0, step=1.0,
+        value=None, key="latest_score",
+        placeholder="如 720（不影响推荐计算，可留空）",
+        help="孩子一模总分。此项不影响推荐计算（模型基于排名）。",
+        label_visibility="collapsed",
     )
 
-    st.sidebar.markdown("---")
+    # 偏好（折叠，默认隐藏）
+    with st.expander("⚖️ 您最看重学校的什么？（可选，默认即可）", expanded=False):
+        st.caption("默认 50/25/25 适合大多数家长，想偏向某个维度再调。")
+        pref_c1, pref_c2, pref_c3 = st.columns(3)
+        with pref_c1:
+            w_rep = st.slider(
+                "🏆 学校档次", 0.0, 1.0, step=0.05, key="w_rep",
+            )
+        with pref_c2:
+            w_trans = st.slider(
+                "🚌 上学距离", 0.0, 1.0, step=0.05, key="w_trans",
+            )
+        with pref_c3:
+            w_quota = st.slider(
+                "🎯 录取保险", 0.0, 1.0, step=0.05, key="w_quota",
+            )
+        total_w = w_rep + w_trans + w_quota
+        if total_w > 0:
+            w_rep_n, w_trans_n, w_quota_n = w_rep/total_w, w_trans/total_w, w_quota/total_w
+        else:
+            w_rep_n = w_trans_n = w_quota_n = 1/3
+        st.caption(
+            f"占比：档次 **{w_rep_n:.0%}** / 距离 **{w_trans_n:.0%}** / 保险 **{w_quota_n:.0%}**"
+        )
 
-    # 高级设置（默认折叠）
-    with st.sidebar.expander("⚙️ 高级设置（一般不用动）", expanded=False):
-        st.markdown("**竞争集中度**")
+    # =================================================================
+    # 侧边栏 — 只保留高级设置
+    # =================================================================
+    st.sidebar.markdown("## ⚙️ 高级设置")
+    st.sidebar.caption("一般用户不需要调整。")
+
+    with st.sidebar.expander("竞争集中度 T", expanded=False):
         T = st.slider(
             "扎堆 ◀────▶ 分散",
             0.05, 5.0, step=0.05, key="T",
-            help="顶尖学生选学校的扎堆程度。默认 1.0 即可。",
+            help="顶尖学生选学校的扎堆程度。默认 1.0。",
         )
-        st.caption(f"当前值：{T:.2f}（默认 1.0）")
+        st.caption(f"当前：{T:.2f}（默认 1.0）")
 
-        st.markdown("**自主招生分流概率**")
+    with st.sidebar.expander("自主招生分流概率", expanded=False):
         st.caption("前几名同学走自招提前上岸的概率")
         zizu_top3 = st.slider("第 1-3 名", 0.0, 0.6, step=0.05, key="zizu_top3")
         zizu_top6 = st.slider("第 4-6 名", 0.0, 0.4, step=0.05, key="zizu_top6")
         zizu_top9 = st.slider("第 7-9 名", 0.0, 0.2, step=0.01, key="zizu_top9")
         zizu_rest = st.slider("第 10-15 名", 0.0, 0.1, step=0.005, key="zizu_rest")
 
-        st.markdown("**模拟精度**")
+    with st.sidebar.expander("模拟精度", expanded=False):
         n_sim_options = [10_000, 50_000, 100_000, 500_000, 1_000_000]
         n_sim_mc = st.select_slider(
             "模拟次数", options=n_sim_options, key="n_sim_mc",
@@ -1110,20 +1160,25 @@ def main():
         )
         st.caption(f"精度约 ±{1.0/np.sqrt(n_sim_mc)*100:.2f}%")
 
-        # 随机种子隐藏不显示，固定使用 session_state["seed"]（默认 42）
-        seed = st.session_state.get("seed", 42)
+    seed = st.session_state.get("seed", 42)
 
-    st.sidebar.markdown("---")
+    # 排名 > 20 警示（仍然有用，放主区域）
+    _rank_check = st.session_state.get("student_rank")
+    if _rank_check is not None and _rank_check > 20:
+        st.warning(
+            f"⚠️ **排名 {_rank_check} 偏后** — 本工具目前只收录 **6 所顶尖高中**（华附/执信/广雅/省实/六中/广附），"
+            f"总共仅 **15 个名额**给一中。排名 20 以后被这 6 所学校录取的概率较低，"
+            f"结果**仅供参考**，建议同时考虑其他批次的高中。"
+        )
 
-    # 大按钮：立即分析
-    run_clicked = st.sidebar.button(
-        "🚀 立即分析", type="primary", use_container_width=True,
-    )
+    st.markdown("")  # 空行
 
-    st.sidebar.caption(
-        "👆 填好上面信息后，点这里开始分析\n\n"
-        "分析约需 1-3 秒"
-    )
+    # 大按钮：立即分析（主区域居中）
+    btn_c1, btn_c2, btn_c3 = st.columns([1, 2, 1])
+    with btn_c2:
+        run_clicked = st.button(
+            "🚀 立即分析", type="primary", use_container_width=True,
+        )
 
     # =================================================================
     # 计算参数
@@ -1151,18 +1206,17 @@ def main():
 
     # =================================================================
     # 点击「立即分析」时跑算法 + 静默存档（含输入校验）
+    # 只校验必填项：集团排名 + 排名波动（姓名/分数可选）
     # =================================================================
     missing = []
-    if not student_name.strip():
-        missing.append("孩子姓名")
     if student_rank is None:
-        missing.append("最新班级排名")
+        missing.append("集团排名")
     if student_std is None:
-        missing.append("排名波动幅度")
+        missing.append("排名波动")
 
     if run_clicked and missing:
-        st.sidebar.error(
-            f"⚠️ 请先填写：{ '、'.join(missing) }"
+        st.error(
+            f"⚠️ 请先填写必填项：**{ '、'.join(missing) }**"
         )
     elif run_clicked:
         with st.spinner("⏳ 分析中… 正在跑 10 万次模拟"):
@@ -1201,58 +1255,14 @@ def main():
         })
 
     # =================================================================
-    # 主区域：未分析 vs 已分析
+    # 未分析：到此为止（顶部已有 hero + 冲/稳/保 介绍 + 表单）
     # =================================================================
     if not st.session_state.get("_analyzed"):
-        st.markdown(
-            """
-<div class="welcome-box">
-  <div style="font-size:48px;margin-bottom:8px;">👈</div>
-  <div style="font-size:24px;font-weight:600;margin-bottom:8px;">
-    请在左侧填写信息，然后点击「🚀 立即分析」
-  </div>
-  <div style="font-size:16px;color:#6B7280;">
-    我们会用 10 万次模拟，为您算出冲 / 稳 / 保三套填报方案。
-  </div>
-</div>
-""",
-            unsafe_allow_html=True,
+        st.markdown("---")
+        st.info(
+            "📝 **填好上面信息后，点击「🚀 立即分析」**，"
+            "我们会用 10 万次模拟为您算出冲 / 稳 / 保三套科学填报方案。"
         )
-
-        # 介绍：本工具能做什么
-        st.markdown("###")
-        intro_col1, intro_col2, intro_col3 = st.columns(3)
-        with intro_col1:
-            st.markdown(
-                """
-### 🔥 冲
-**敢拼一把**
-
-第一志愿填顶尖学校，
-万一中了就赚到。
-"""
-            )
-        with intro_col2:
-            st.markdown(
-                """
-### ✅ 稳
-**踏实选择**
-
-第一志愿填把握中等的学校，
-进可攻退可守。
-"""
-            )
-        with intro_col3:
-            st.markdown(
-                """
-### 🛡️ 保
-**安全上岸**
-
-第一志愿填一定能上的学校，
-确保不滑档。
-"""
-            )
-
         return  # 还没分析，到此为止
 
     # =================================================================
