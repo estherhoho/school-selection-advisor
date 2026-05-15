@@ -856,22 +856,34 @@ CUSTOM_CSS = """
   h2 { font-weight: 700 !important; font-size: 1.8rem !important; }
   h3 { font-weight: 600 !important; }
 
-  /* ===== 📱 移动端适配 (iPhone < 768px) ===== */
+  /* ===== 📱 iPhone 移动端适配 (< 768px) ===== */
   @media (max-width: 768px) {
-    h1 { font-size: 1.8rem !important; }
-    h2 { font-size: 1.3rem !important; }
-    h3 { font-size: 1.1rem !important; }
-    .card-title { font-size: 18px !important; }
-    .card-row { font-size: 14px !important; }
-    .card-rate { font-size: 28px !important; }
+    h1 { font-size: 1.6rem !important; }
+    h2 { font-size: 1.2rem !important; }
+    h3 { font-size: 1.05rem !important; }
+    .card-title { font-size: 17px !important; }
+    .card-row { font-size: 13px !important; }
+    .card-rate { font-size: 26px !important; }
     .card-rate-label { font-size: 12px !important; }
-    .student-card { padding: 16px !important; }
-    .student-card div { font-size: 14px !important; }
-    .recommend-card { padding: 16px !important; margin: 6px 0 !important; }
-    /* 主区域两侧留白小一点 */
-    .main .block-container { padding: 1rem 0.5rem !important; }
-    /* 让默认 columns 在窄屏自动换行（Streamlit 在小屏会自动堆叠，但加这层保险） */
-    [data-testid="column"] { min-width: 100% !important; }
+    .student-card { padding: 14px !important; }
+    .student-card div { font-size: 13px !important; }
+    .recommend-card { padding: 14px !important; margin: 6px 0 !important; }
+    /* 主区域留白尽量小，让 iPhone 横向空间足够 */
+    .main .block-container { padding: 0.5rem 0.5rem !important; max-width: 100% !important; }
+    /* columns 强制单列堆叠 */
+    [data-testid="column"] { min-width: 100% !important; flex: 1 1 100% !important; }
+    /* 输入框/按钮都全宽 */
+    .stButton button, .stSelectbox, .stTextInput, .stNumberInput { width: 100% !important; }
+    /* 按钮加大方便触摸（44px Apple HIG 推荐最小） */
+    div.stButton > button[kind="primary"] {
+      padding: 16px !important; font-size: 16px !important;
+      min-height: 48px !important;
+    }
+    /* metric 在 iPhone 上字号收紧 */
+    [data-testid="stMetricValue"] { font-size: 22px !important; }
+    [data-testid="stMetricLabel"] { font-size: 12px !important; }
+    /* 表格在小屏可横向滚动 */
+    [data-testid="stDataFrame"] { overflow-x: auto !important; }
   }
   /* 让所有 plotly 图自适应宽度 */
   .js-plotly-plot, .plotly { width: 100% !important; }
