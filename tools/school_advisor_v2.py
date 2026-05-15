@@ -347,6 +347,16 @@ class SchoolAdvisorV2:
     # -----------------------------------------------------------------
     # 蒙特卡洛核心：预生成场景 + 计算 "竞争对手每轮后剩余名额"
     # -----------------------------------------------------------------
+    def _ensure_top_n(self, needed: int) -> None:
+        """如果 top_n 不够覆盖学生排名，自动扩展（防止 clip bug）。"""
+        if needed > self.top_n:
+            old_top_n = self.top_n
+            self.top_n = needed
+            # 扩展 zizu_rates（新增的位置用最后一个值兜底）
+            tail = self.zizu_rates[-1] if len(self.zizu_rates) else 0.01
+            extra = np.full(needed - old_top_n, tail, dtype=float)
+            self.zizu_rates = np.concatenate([self.zizu_rates, extra])
+
     def _simulate_scenarios(
         self,
         student_rank: int,
@@ -356,6 +366,10 @@ class SchoolAdvisorV2:
         n_sim: int,
         seed: int,
     ):
+        # 自动确保 top_n 够用（覆盖 ±3σ）
+        std_for_buf = max(int(student_std * 3), 5)
+        needed = max(15, int(student_rank) + std_for_buf)
+        self._ensure_top_n(needed)
         """
         预先模拟 n_sim 个场景，每个场景返回：
           - 竞争对手处理完每轮志愿后剩余的名额
