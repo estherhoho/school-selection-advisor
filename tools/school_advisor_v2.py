@@ -1017,10 +1017,14 @@ def main():
         "孩子姓名", key="student_name", placeholder="例：张三",
     )
     st.sidebar.number_input(
-        "最新班级排名（第几名）", min_value=1, max_value=50, step=1,
+        "集团排名（若不确定，预估）", min_value=1, max_value=50, step=1,
         value=None, key="student_rank",
         placeholder="例：10（数字越小越好）",
-        help="孩子在班里的最新排名。1 = 第一名（最好）。",
+        help=(
+            "孩子在初中所属教育集团内的最新排名。\n"
+            "1 = 第一名（最好）。\n"
+            "若不确定具体排名，请凭近期模考表现预估。"
+        ),
     )
     st.sidebar.number_input(
         "排名波动幅度（约 ±N 名）",
