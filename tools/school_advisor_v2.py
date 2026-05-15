@@ -783,6 +783,26 @@ CUSTOM_CSS = """
   h2 { font-weight: 700 !important; font-size: 1.8rem !important; }
   h3 { font-weight: 600 !important; }
 
+  /* ===== 📱 移动端适配 (iPhone < 768px) ===== */
+  @media (max-width: 768px) {
+    h1 { font-size: 1.8rem !important; }
+    h2 { font-size: 1.3rem !important; }
+    h3 { font-size: 1.1rem !important; }
+    .card-title { font-size: 18px !important; }
+    .card-row { font-size: 14px !important; }
+    .card-rate { font-size: 28px !important; }
+    .card-rate-label { font-size: 12px !important; }
+    .student-card { padding: 16px !important; }
+    .student-card div { font-size: 14px !important; }
+    .recommend-card { padding: 16px !important; margin: 6px 0 !important; }
+    /* 主区域两侧留白小一点 */
+    .main .block-container { padding: 1rem 0.5rem !important; }
+    /* 让默认 columns 在窄屏自动换行（Streamlit 在小屏会自动堆叠，但加这层保险） */
+    [data-testid="column"] { min-width: 100% !important; }
+  }
+  /* 让所有 plotly 图自适应宽度 */
+  .js-plotly-plot, .plotly { width: 100% !important; }
+
   /* 侧边栏：白底 */
   section[data-testid="stSidebar"] {
     background-color: #FFFFFF !important;
