@@ -1214,6 +1214,12 @@ def main():
 
     top_picks = {}
     card_col1, card_col2, card_col3 = st.columns(3)
+    # 每档不同的排序策略，确保 保的综合 ≥ 稳 ≥ 冲 (符合直觉)
+    sort_keys = {
+        "冲": ("期望声誉", False),     # 冲：追求最尖端学校
+        "稳": ("综合录取率", False),   # 稳：在 1志 30-70% 区间里挑综合最高
+        "保": ("综合录取率", False),   # 保：综合录取率最高优先
+    }
     for col, strat_name, color, css_class, subtitle in [
         (card_col1, "冲", "🔥", "card-chong", "敢拼一把"),
         (card_col2, "稳", "✅", "card-wen",   "中等把握"),
@@ -1225,7 +1231,8 @@ def main():
                 st.markdown(f"### {color} {strat_name}")
                 st.warning("当前条件下无符合方案")
                 continue
-            top1 = sub.sort_values("期望声誉", ascending=False).iloc[0].to_dict()
+            sort_col, asc = sort_keys[strat_name]
+            top1 = sub.sort_values(sort_col, ascending=asc).iloc[0].to_dict()
             top_picks[strat_name] = top1
             render_recommend_card(strat_name, color, css_class, subtitle, top1)
 
