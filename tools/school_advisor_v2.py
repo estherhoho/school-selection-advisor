@@ -1098,7 +1098,7 @@ def main():
 
 <div class="hero-banner">
   <div class="hero-shimmer"></div>
-  <span class="hero-pill">广州中考 · 第二批次志愿规划</span>
+  <span class="hero-pill">广州中考 · 第二批次（名额分配）</span>
   <h1 class="hero-title">中考升学规划助手</h1>
   <div class="hero-subtitle">
     告别"凭感觉填志愿"，<b>用数据看清每所学校的录取概率</b>。<br>
